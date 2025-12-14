@@ -1,0 +1,21 @@
+# Backup files
+index-original-backup.html
+index-improved.html
+
+# Development files
+todo.md
+
+# API keys (if you create a separate config file)
+config.js
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
