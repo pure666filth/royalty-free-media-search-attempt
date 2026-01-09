@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Type Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border-color: #404040;
+            --accent-color: #ffffff;
+            --hover-bg: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        header p {
+            font-size: 1.1em;
+            color: var(--text-secondary);
+        }
+
+        /* Notice */
+        .notice {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .notice h3 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .notice p {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* File Type Grid */
+        .filetype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .filetype-card {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .filetype-card:hover {
+            background: var(--hover-bg);
+        }
+
+        .filetype-card.active {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border-color: var(--text-primary);
+        }
+
+        .filetype-icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .filetype-name {
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-bottom: 4px;
+        }
+
+        .filetype-formats {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .filetype-card.active .filetype-formats {
+            opacity: 0.8;
+        }
+
+        /* Search Resources Section */
+        .resources-section {
+            margin-bottom: 30px;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .resource-category {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .resource-category h4 {
+            font-size: 1em;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 6px;
+            border-radius: 3px;
+        }
+
+        .resource-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .resource-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: var(--text-primary);
+        }
+
+        .resource-item label {
+            cursor: pointer;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        .resource-item input[type="checkbox"]:checked + label {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .select-all-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-top: 8px;
+        }
+
+        .select-all-btn:hover {
+            background: var(--hover-bg);
+            color: var(--text-primary);
+        }
+
+        /* Search Controls */
+        .search-controls {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 0.9em;
+        }
+
+        input[type="text"],
+        select {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1em;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--text-primary);
+        }
+
+        select option {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Advanced Filters */
+        .advanced-filters {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .advanced-filters h4 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        button:hover {
+            background: var(--hover-bg);
+            border-color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border-color: var(--text-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--text-secondary);
+            border-color: var(--text-secondary);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results Section */
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .results-header {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .results-count {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .results-count span {
+            font-weight: 600;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .file-card {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .file-card:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--text-primary);
+        }
+
+        .file-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .file-icon {
+            font-size: 2.5em;
+            flex-shrink: 0;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 1em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-source {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .file-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .meta-badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: 500;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .file-description {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .file-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1em;
+        }
+
+        .stat-label {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.9em;
+        }
+
+        /* Loading & Empty States */
+        .loading,
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--text-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text,
+        .empty-state h3 {
+            font-size: 1.1em;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            z-index: 10;
+        }
+
+        .modal-header h3 {
+            color: var(--text-primary);
+            font-size: 1.3em;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 1.3em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .modal-close:hover {
+            background: var(--hover-bg);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* Utility */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+
+            .search-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .filetype-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .file-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>📁 File Type Search Engine</h1>
+            <p>Search across multiple sources for movies, videos, audio, software, documents, and more</p>
+        </header>
+
+        <!-- Notice -->
+        <div class="notice">
+            <h3>⚠️ Important Notice</h3>
+            <p>This is a demonstration interface. This tool does not host, store, or distribute any files. It shows how a multi-source file search interface could work.</p>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <h3 class="section-title">File Types</h3>
+            
+            <!-- File Type Grid -->
+            <div class="filetype-grid">
+                <div class="filetype-card active" data-type="all">
+                    <span class="filetype-icon">🌐</span>
+                    <div class="filetype-name">All Files</div>
+                    <div class="filetype-formats">All formats</div>
+                </div>
+                <div class="filetype-card" data-type="movies">
+                    <span class="filetype-icon">🎬</span>
+                    <div class="filetype-name">Movies</div>
+                    <div class="filetype-formats">MP4, MKV, AVI</div>
+                </div>
+                <div class="filetype-card" data-type="videos">
+                    <span class="filetype-icon">📹</span>
+                    <div class="filetype-name">Videos</div>
+                    <div class="filetype-formats">MP4, WebM</div>
+                </div>
+                <div class="filetype-card" data-type="audio">
+                    <span class="filetype-icon">🎵</span>
+                    <div class="filetype-name">Audio</div>
+                    <div class="filetype-formats">MP3, FLAC</div>
+                </div>
+                <div class="filetype-card" data-type="audiobooks">
+                    <span class="filetype-icon">📚</span>
+                    <div class="filetype-name">Audiobooks</div>
+                    <div class="filetype-formats">M4B, MP3</div>
+                </div>
+                <div class="filetype-card" data-type="software">
+                    <span class="filetype-icon">💿</span>
+                    <div class="filetype-name">Software</div>
+                    <div class="filetype-formats">EXE, ISO</div>
+                </div>
+                <div class="filetype-card" data-type="documents">
+                    <span class="filetype-icon">📄</span>
+                    <div class="filetype-name">Documents</div>
+                    <div class="filetype-formats">PDF, EPUB</div>
+                </div>
+                <div class="filetype-card" data-type="games">
+                    <span class="filetype-icon">🎮</span>
+                    <div class="filetype-name">Games</div>
+                    <div class="filetype-formats">ISO, EXE</div>
+                </div>
+            </div>
+
+            <!-- Search Resources -->
+            <div class="resources-section">
+                <h3 class="section-title">Search Sources</h3>
+                <div class="resources-grid">
+                    <!-- Torrent Trackers -->
+                    <div class="resource-category">
+                        <h4>🔥 Torrent Trackers</h4>
+                        <div class="resource-item">
+                            <input type="checkbox" id="tracker1" checked>
+                            <label for="tracker1">The Pirate Bay</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="tracker2" checked>
+                            <label for="tracker2">1337x</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="tracker3" checked>
+                            <label for="tracker3">RARBG</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="tracker4">
+                            <label for="tracker4">YTS</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="tracker5">
+                            <label for="tracker5">EZTV</label>
+                        </div>
+                        <button class="select-all-btn" onclick="toggleCategory('tracker')">Select All</button>
+                    </div>
+
+                    <!-- Usenet Indexers -->
+                    <div class="resource-category">
+                        <h4>📡 Usenet Indexers</h4>
+                        <div class="resource-item">
+                            <input type="checkbox" id="usenet1">
+                            <label for="usenet1">NZBgeek</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="usenet2">
+                            <label for="usenet2">DrunkenSlug</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="usenet3">
+                            <label for="usenet3">NZBFinder</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="usenet4">
+                            <label for="usenet4">NZBPlanet</label>
+                        </div>
+                        <button class="select-all-btn" onclick="toggleCategory('usenet')">Select All</button>
+                    </div>
+
+                    <!-- FTP Search -->
+                    <div class="resource-category">
+                        <h4>📂 FTP Search</h4>
+                        <div class="resource-item">
+                            <input type="checkbox" id="ftp1">
+                            <label for="ftp1">Napalm FTP Indexer</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="ftp2">
+                            <label for="ftp2">FileMare</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="ftp3">
+                            <label for="ftp3">MMNT</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="ftp4">
+                            <label for="ftp4">FileChef</label>
+                        </div>
+                        <button class="select-all-btn" onclick="toggleCategory('ftp')">Select All</button>
+                    </div>
+
+                    <!-- Direct Download -->
+                    <div class="resource-category">
+                        <h4>⬇️ Direct Download</h4>
+                        <div class="resource-item">
+                            <input type="checkbox" id="ddl1">
+                            <label for="ddl1">Mega Search</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="ddl2">
+                            <label for="ddl2">Rapidgator Search</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="ddl3">
+                            <label for="ddl3">Uploaded.to Search</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="ddl4">
+                            <label for="ddl4">Nitroflare Search</label>
+                        </div>
+                        <button class="select-all-btn" onclick="toggleCategory('ddl')">Select All</button>
+                    </div>
+
+                    <!-- Specialized Sites -->
+                    <div class="resource-category">
+                        <h4>🎯 Specialized</h4>
+                        <div class="resource-item">
+                            <input type="checkbox" id="spec1">
+                            <label for="spec1">AudioBook Bay</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="spec2">
+                            <label for="spec2">Library Genesis</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="spec3">
+                            <label for="spec3">Sci-Hub</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="spec4">
+                            <label for="spec4">RuTracker</label>
+                        </div>
+                        <button class="select-all-btn" onclick="toggleCategory('spec')">Select All</button>
+                    </div>
+
+                    <!-- Web Crawlers -->
+                    <div class="resource-category">
+                        <h4>🕷️ Web Crawlers</h4>
+                        <div class="resource-item">
+                            <input type="checkbox" id="web1">
+                            <label for="web1">Open Directory Search</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="web2">
+                            <label for="web2">Palined</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="web3">
+                            <label for="web3">FONETASK</label>
+                        </div>
+                        <div class="resource-item">
+                            <input type="checkbox" id="web4">
+                            <label for="web4">Filepursuit</label>
+                        </div>
+                        <button class="select-all-btn" onclick="toggleCategory('web')">Select All</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Controls -->
+            <h3 class="section-title" style="margin-top: 30px;">Search Parameters</h3>
+            <div class="search-controls">
+                <div class="form-group">
+                    <label for="searchQuery">Search Query</label>
+                    <input type="text" id="searchQuery" placeholder="Enter keywords...">
+                </div>
+                <div class="form-group">
+                    <label for="quality">Quality</label>
+                    <select id="quality">
+                        <option value="all">All Qualities</option>
+                        <option value="4k">4K / 2160p</option>
+                        <option value="1080p">1080p / Full HD</option>
+                        <option value="720p">720p / HD</option>
+                        <option value="480p">480p / SD</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sortBy">Sort By</label>
+                    <select id="sortBy">
+                        <option value="relevance">Relevance</option>
+                        <option value="date">Date Added</option>
+                        <option value="size">File Size</option>
+                        <option value="seeders">Seeders</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Advanced Filters -->
+            <div class="advanced-filters">
+                <h4>Advanced Filters</h4>
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label for="minSize">Min Size</label>
+                        <select id="minSize">
+                            <option value="0">Any Size</option>
+                            <option value="100">100 MB+</option>
+                            <option value="500">500 MB+</option>
+                            <option value="1000">1 GB+</option>
+                            <option value="5000">5 GB+</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxSize">Max Size</label>
+                        <select id="maxSize">
+                            <option value="999999">Any Size</option>
+                            <option value="500">500 MB</option>
+                            <option value="1000">1 GB</option>
+                            <option value="5000">5 GB</option>
+                            <option value="10000">10 GB</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Year</label>
+                        <select id="year">
+                            <option value="all">All Years</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button class="btn-primary" id="searchBtn">Search Files</button>
+                <button id="clearBtn">Clear Filters</button>
+                <button id="selectAllSourcesBtn">Select All Sources</button>
+                <button id="deselectAllSourcesBtn">Deselect All Sources</button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section hidden" id="resultsSection">
+            <div class="results-header">
+                <div class="results-count">
+                    Found <span id="resultsCount">0</span> results across <span id="sourcesCount">0</span> sources
+                </div>
+            </div>
+
+            <div class="results-grid" id="resultsGrid"></div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading hidden" id="loadingState">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Searching across selected sources...</div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state hidden" id="emptyState">
+            <div class="empty-icon">🔍</div>
+            <h3>No Results Found</h3>
+            <p>Try different search terms, select more sources, or adjust your filters</p>
+        </div>
+    </div>
+
+    <!-- Legal Agreement Modal -->
+    <div class="modal active" id="legalModal" style="background: rgba(0, 0, 0, 0.95);">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>Terms of Use and Liability Release</h3>
+            </div>
+            <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                <div style="margin-bottom: 20px; padding: 15px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px;">
+                    <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 10px;">IMPORTANT LEGAL NOTICE</p>
+                    <p style="color: var(--text-secondary); font-size: 0.9em;">Please read this agreement carefully before using this search utility.</p>
+                </div>
+
+                <div style="color: var(--text-secondary); font-size: 0.9em; line-height: 1.8; text-align: justify;">
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">1. NATURE OF SERVICE</h4>
+                    <p style="margin-bottom: 15px;">This website provides only a search utility interface ("Service"). The Service does not host, store, transmit, distribute, or provide access to any files, content, or materials of any kind. The Service is solely a demonstration of search interface functionality.</p>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">2. NO CONTENT PROVIDED</h4>
+                    <p style="margin-bottom: 15px;">The operator of this Service ("Provider") explicitly disclaims any involvement in the hosting, storage, transmission, or distribution of any files, content, or materials. The Provider does not provide, facilitate, or enable access to any actual files or content whatsoever. Any search results displayed are for demonstration purposes only.</p>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">3. USER RESPONSIBILITY</h4>
+                    <p style="margin-bottom: 15px;">By using this Service, you ("User") acknowledge and agree that:</p>
+                    <ul style="margin-left: 20px; margin-bottom: 15px;">
+                        <li style="margin-bottom: 8px;">You are solely and exclusively responsible for your use of this Service and any actions you take based on information obtained through this Service.</li>
+                        <li style="margin-bottom: 8px;">You are solely responsible for ensuring your compliance with all applicable local, state, national, and international laws and regulations.</li>
+                        <li style="margin-bottom: 8px;">You will not use this Service for any unlawful purpose or in any manner that violates any applicable laws or regulations.</li>
+                        <li style="margin-bottom: 8px;">You understand that the Provider has no control over, and assumes no responsibility for, any third-party content, websites, or services that may be referenced or linked.</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">4. DISCLAIMER OF LIABILITY</h4>
+                    <p style="margin-bottom: 15px;">TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:</p>
+                    <ul style="margin-left: 20px; margin-bottom: 15px;">
+                        <li style="margin-bottom: 8px;">The Provider shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising out of or relating to your use of this Service.</li>
+                        <li style="margin-bottom: 8px;">The Provider makes no representations or warranties of any kind, express or implied, regarding the Service or any information obtained through the Service.</li>
+                        <li style="margin-bottom: 8px;">The Service is provided "AS IS" and "AS AVAILABLE" without warranty of any kind.</li>
+                        <li style="margin-bottom: 8px;">The Provider disclaims all liability for any actions taken by User based on information obtained through this Service.</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">5. INDEMNIFICATION</h4>
+                    <p style="margin-bottom: 15px;">You agree to indemnify, defend, and hold harmless the Provider, its officers, directors, employees, agents, and affiliates from and against any and all claims, damages, obligations, losses, liabilities, costs, and expenses (including attorney's fees) arising from: (a) your use of the Service; (b) your violation of these terms; (c) your violation of any third-party rights; or (d) any content or information you access through the Service.</p>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">6. NO ENDORSEMENT</h4>
+                    <p style="margin-bottom: 15px;">The Provider does not endorse, support, represent, or guarantee the legality, accuracy, or reliability of any third-party content, websites, or services. Any reference to third-party sources is for informational purposes only and does not constitute an endorsement or recommendation.</p>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">7. INTELLECTUAL PROPERTY</h4>
+                    <p style="margin-bottom: 15px;">You acknowledge that you are solely responsible for respecting all intellectual property rights, copyrights, trademarks, and other proprietary rights. The Provider assumes no responsibility for any copyright infringement or intellectual property violations that may result from your use of this Service.</p>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">8. SEVERABILITY</h4>
+                    <p style="margin-bottom: 15px;">If any provision of this agreement is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary so that this agreement shall otherwise remain in full force and effect.</p>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">9. GOVERNING LAW</h4>
+                    <p style="margin-bottom: 15px;">This agreement shall be governed by and construed in accordance with the laws of the jurisdiction in which the Provider operates, without regard to its conflict of law provisions.</p>
+
+                    <h4 style="color: var(--text-primary); margin: 20px 0 10px 0; font-size: 1em;">10. ACKNOWLEDGMENT</h4>
+                    <p style="margin-bottom: 15px;">By clicking "I Accept" below, you acknowledge that you have read, understood, and agree to be bound by all terms and conditions set forth in this agreement. You further acknowledge that you are using this Service at your own risk and that you are solely responsible for any consequences arising from your use of this Service.</p>
+                </div>
+
+                <div style="margin-top: 25px; padding: 15px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px;">
+                    <label style="display: flex; align-items: flex-start; cursor: pointer; color: var(--text-primary);">
+                        <input type="checkbox" id="legalCheckbox" style="width: 18px; height: 18px; margin-right: 10px; margin-top: 2px; cursor: pointer; accent-color: var(--text-primary);">
+                        <span style="font-size: 0.9em; line-height: 1.6;">
+                            I have read, understood, and agree to be bound by the Terms of Use and Liability Release. I acknowledge that I am solely responsible for my use of this Service and that the Provider has not provided any files, content, or materials of any kind.
+                        </span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button class="btn-primary" id="acceptLegalBtn" disabled style="flex: 1; opacity: 0.5;">I Accept</button>
+                    <button id="declineLegalBtn" style="flex: 1;">I Decline</button>
+                </div>
+
+                <p style="margin-top: 15px; font-size: 0.8em; color: var(--text-secondary); text-align: center;">
+                    If you decline, you will not be able to use this Service.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Details Modal -->
+    <div class="modal" id="fileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>File Details</h3>
+                <button class="modal-close" id="modalClose">×</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        const state = {
+            selectedFileType: 'all',
+            searchQuery: '',
+            selectedSources: [],
+            filters: {
+                quality: 'all',
+                sortBy: 'relevance',
+                minSize: 0,
+                maxSize: 999999,
+                year: 'all'
+            },
+            results: []
+        };
+
+        // DOM Elements
+        const elements = {
+            searchQuery: document.getElementById('searchQuery'),
+            quality: document.getElementById('quality'),
+            sortBy: document.getElementById('sortBy'),
+            minSize: document.getElementById('minSize'),
+            maxSize: document.getElementById('maxSize'),
+            year: document.getElementById('year'),
+            searchBtn: document.getElementById('searchBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            selectAllSourcesBtn: document.getElementById('selectAllSourcesBtn'),
+            deselectAllSourcesBtn: document.getElementById('deselectAllSourcesBtn'),
+            resultsSection: document.getElementById('resultsSection'),
+            resultsGrid: document.getElementById('resultsGrid'),
+            resultsCount: document.getElementById('resultsCount'),
+            sourcesCount: document.getElementById('sourcesCount'),
+            loadingState: document.getElementById('loadingState'),
+            emptyState: document.getElementById('emptyState'),
+            modal: document.getElementById('fileModal'),
+            modalBody: document.getElementById('modalBody'),
+            modalClose: document.getElementById('modalClose')
+        };
+
+        // Initialize
+        function init() {
+            setupEventListeners();
+            setupFileTypeCards();
+            generateDemoData();
+            updateSelectedSources();
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            elements.searchBtn.addEventListener('click', performSearch);
+            elements.clearBtn.addEventListener('click', clearFilters);
+            elements.selectAllSourcesBtn.addEventListener('click', selectAllSources);
+            elements.deselectAllSourcesBtn.addEventListener('click', deselectAllSources);
+            elements.searchQuery.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+            elements.modalClose.addEventListener('click', closeModal);
+            elements.modal.addEventListener('click', (e) => {
+                if (e.target === elements.modal) closeModal();
+            });
+
+            // Listen to checkbox changes
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedSources);
+            });
+        }
+
+        // Setup File Type Cards
+        function setupFileTypeCards() {
+            const cards = document.querySelectorAll('.filetype-card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    cards.forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    state.selectedFileType = card.dataset.type;
+                });
+            });
+        }
+
+        // Toggle Category
+        function toggleCategory(prefix) {
+            const checkboxes = document.querySelectorAll(`input[id^="${prefix}"]`);
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            updateSelectedSources();
+        }
+
+        // Select All Sources
+        function selectAllSources() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            updateSelectedSources();
+        }
+
+        // Deselect All Sources
+        function deselectAllSources() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateSelectedSources();
+        }
+
+        // Update Selected Sources
+        function updateSelectedSources() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            state.selectedSources = Array.from(checkboxes).map(cb => {
+                const label = document.querySelector(`label[for="${cb.id}"]`);
+                return label ? label.textContent : '';
+            });
+        }
+
+        // Generate Demo Data
+        function generateDemoData() {
+            const sources = ['The Pirate Bay', '1337x', 'RARBG', 'YTS', 'Library Genesis', 'RuTracker'];
+            const demoFiles = [
+                {
+                    id: 1,
+                    title: 'Example Movie 2024',
+                    type: 'movies',
+                    format: 'MKV',
+                    size: '4.5 GB',
+                    quality: '1080p',
+                    seeders: 1250,
+                    leechers: 340,
+                    year: 2024,
+                    source: sources[0],
+                    description: 'High-quality movie file with excellent video and audio.'
+                },
+                {
+                    id: 2,
+                    title: 'Sample Audio Album',
+                    type: 'audio',
+                    format: 'FLAC',
+                    size: '450 MB',
+                    quality: 'Lossless',
+                    seeders: 890,
+                    leechers: 120,
+                    year: 2023,
+                    source: sources[1],
+                    description: 'Complete album in lossless FLAC format.'
+                },
+                {
+                    id: 3,
+                    title: 'Software Package 2024',
+                    type: 'software',
+                    format: 'ISO',
+                    size: '2.8 GB',
+                    quality: 'Full',
+                    seeders: 2100,
+                    leechers: 450,
+                    year: 2024,
+                    source: sources[2],
+                    description: 'Complete software installation package.'
+                },
+                {
+                    id: 4,
+                    title: 'Documentary Series',
+                    type: 'videos',
+                    format: 'MP4',
+                    size: '1.2 GB',
+                    quality: '720p',
+                    seeders: 560,
+                    leechers: 89,
+                    year: 2023,
+                    source: sources[3],
+                    description: 'Educational documentary series in HD.'
+                },
+                {
+                    id: 5,
+                    title: 'Audiobook Collection',
+                    type: 'audiobooks',
+                    format: 'M4B',
+                    size: '850 MB',
+                    quality: '128kbps',
+                    seeders: 340,
+                    leechers: 67,
+                    year: 2024,
+                    source: sources[4],
+                    description: 'Complete audiobook with chapter markers.'
+                },
+                {
+                    id: 6,
+                    title: 'Technical Manual PDF',
+                    type: 'documents',
+                    format: 'PDF',
+                    size: '125 MB',
+                    quality: 'High',
+                    seeders: 780,
+                    leechers: 145,
+                    year: 2024,
+                    source: sources[5],
+                    description: 'Comprehensive technical documentation.'
+                }
+            ];
+
+            state.results = demoFiles;
+        }
+
+        // Perform Search
+        function performSearch() {
+            const query = elements.searchQuery.value.trim();
+            
+            if (state.selectedSources.length === 0) {
+                alert('Please select at least one search source');
+                return;
+            }
+
+            updateFilters();
+            showLoading();
+            hideEmpty();
+            elements.resultsSection.classList.add('hidden');
+
+            // Simulate search delay
+            setTimeout(() => {
+                let filteredResults = [...state.results];
+
+                // Filter by file type
+                if (state.selectedFileType !== 'all') {
+                    filteredResults = filteredResults.filter(file => 
+                        file.type === state.selectedFileType
+                    );
+                }
+
+                // Filter by search query
+                if (query) {
+                    filteredResults = filteredResults.filter(file =>
+                        file.title.toLowerCase().includes(query.toLowerCase()) ||
+                        file.description.toLowerCase().includes(query.toLowerCase())
+                    );
+                }
+
+                // Filter by selected sources (demo: just show all for now)
+                // In real implementation, this would query only selected sources
+
+                hideLoading();
+
+                if (filteredResults.length === 0) {
+                    showEmpty();
+                } else {
+                    displayResults(filteredResults);
+                }
+            }, 1500);
+        }
+
+        // Display Results
+        function displayResults(results) {
+            elements.resultsSection.classList.remove('hidden');
+            elements.resultsCount.textContent = results.length;
+            elements.sourcesCount.textContent = state.selectedSources.length;
+
+            const fileIcons = {
+                movies: '🎬',
+                videos: '📹',
+                audio: '🎵',
+                audiobooks: '📚',
+                software: '💿',
+                documents: '📄',
+                games: '🎮'
+            };
+
+            elements.resultsGrid.innerHTML = results.map(file => `
+                <div class="file-card" onclick="openModal(${file.id})">
+                    <div class="file-header">
+                        <span class="file-icon">${fileIcons[file.type] || '📁'}</span>
+                        <div class="file-info">
+                            <div class="file-title">${file.title}</div>
+                            <div class="file-source">Source: ${file.source}</div>
+                            <div class="file-meta">
+                                <span class="meta-badge">${file.format}</span>
+                                <span class="meta-badge">${file.size}</span>
+                                <span class="meta-badge">${file.quality}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-description">${file.description}</div>
+                    <div class="file-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${file.seeders}</div>
+                            <div class="stat-label">Seeders</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${file.leechers}</div>
+                            <div class="stat-label">Leechers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${file.year}</div>
+                            <div class="stat-label">Year</div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="action-btn" onclick="event.stopPropagation(); alert('Download functionality would be implemented here')">Download</button>
+                        <button class="action-btn" onclick="event.stopPropagation(); alert('Magnet link functionality would be implemented here')">Magnet</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update Filters
+        function updateFilters() {
+            state.filters = {
+                quality: elements.quality.value,
+                sortBy: elements.sortBy.value,
+                minSize: parseInt(elements.minSize.value),
+                maxSize: parseInt(elements.maxSize.value),
+                year: elements.year.value
+            };
+        }
+
+        // Clear Filters
+        function clearFilters() {
+            elements.searchQuery.value = '';
+            elements.quality.value = 'all';
+            elements.sortBy.value = 'relevance';
+            elements.minSize.value = '0';
+            elements.maxSize.value = '999999';
+            elements.year.value = 'all';
+            
+            document.querySelectorAll('.filetype-card').forEach(card => {
+                card.classList.remove('active');
+                if (card.dataset.type === 'all') {
+                    card.classList.add('active');
+                }
+            });
+            
+            state.selectedFileType = 'all';
+            elements.resultsSection.classList.add('hidden');
+            hideEmpty();
+        }
+
+        // Modal Functions
+        function openModal(fileId) {
+            const file = state.results.find(f => f.id === fileId);
+            if (!file) return;
+
+            const fileIcons = {
+                movies: '🎬',
+                videos: '📹',
+                audio: '🎵',
+                audiobooks: '📚',
+                software: '💿',
+                documents: '📄',
+                games: '🎮'
+            };
+
+            elements.modalBody.innerHTML = `
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <div style="font-size: 4em; margin-bottom: 15px;">${fileIcons[file.type] || '📁'}</div>
+                    <h2 style="color: var(--text-primary); margin-bottom: 10px; font-size: 1.5em;">${file.title}</h2>
+                    <p style="color: var(--text-secondary);">${file.description}</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px;">
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 5px;">Source</div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${file.source}</div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 5px;">Format</div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${file.format}</div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 5px;">Size</div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${file.size}</div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 5px;">Quality</div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${file.quality}</div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 5px;">Year</div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${file.year}</div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 5px;">Type</div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${file.type}</div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 5px;">Seeders</div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${file.seeders}</div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 5px;">Leechers</div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${file.leechers}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn-primary" style="flex: 1;" onclick="alert('Download functionality would be implemented here')">Download File</button>
+                    <button style="flex: 1;" onclick="alert('Magnet link functionality would be implemented here')">Magnet Link</button>
+                </div>
+            `;
+
+            elements.modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            elements.modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Utility Functions
+        function showLoading() {
+            elements.loadingState.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            elements.loadingState.classList.add('hidden');
+        }
+
+        function showEmpty() {
+            elements.emptyState.classList.remove('hidden');
+        }
+
+        function hideEmpty() {
+            elements.emptyState.classList.add('hidden');
+        }
+
+        // Legal Agreement Handling
+        let legalAccepted = false;
+
+        function initLegalModal() {
+            const legalCheckbox = document.getElementById('legalCheckbox');
+            const acceptBtn = document.getElementById('acceptLegalBtn');
+            const declineBtn = document.getElementById('declineLegalBtn');
+            const legalModal = document.getElementById('legalModal');
+            const searchBtn = elements.searchBtn;
+
+            // Enable accept button when checkbox is checked
+            legalCheckbox.addEventListener('change', () => {
+                if (legalCheckbox.checked) {
+                    acceptBtn.disabled = false;
+                    acceptBtn.style.opacity = '1';
+                } else {
+                    acceptBtn.disabled = true;
+                    acceptBtn.style.opacity = '0.5';
+                }
+            });
+
+            // Handle accept
+            acceptBtn.addEventListener('click', () => {
+                if (legalCheckbox.checked) {
+                    legalAccepted = true;
+                    legalModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    // Store acceptance in session
+                    sessionStorage.setItem('legalAccepted', 'true');
+                }
+            });
+
+            // Handle decline
+            declineBtn.addEventListener('click', () => {
+                alert('You must accept the Terms of Use to use this Service. The page will now close.');
+                window.location.href = 'about:blank';
+            });
+
+            // Check if already accepted in this session
+            if (sessionStorage.getItem('legalAccepted') === 'true') {
+                legalAccepted = true;
+                legalModal.classList.remove('active');
+            } else {
+                // Show modal and disable search
+                legalModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // Override performSearch to check legal acceptance
+        const originalPerformSearch = performSearch;
+        performSearch = function() {
+            if (!legalAccepted) {
+                alert('You must accept the Terms of Use before searching.');
+                document.getElementById('legalModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                return;
+            }
+            originalPerformSearch();
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initLegalModal();
+            init();
+        });
+    </script>
+</body>
+</html>
