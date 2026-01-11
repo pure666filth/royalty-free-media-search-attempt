@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Type Media Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --danger-color: #f87171;
+            --dark-bg: #1e293b;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        /* API Notice */
+        .api-notice {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border-left: 5px solid var(--warning-color);
+        }
+
+        .api-notice h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .api-notice p {
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .api-notice code {
+            background: #f1f5f9;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: var(--danger-color);
+            font-size: 0.9em;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+            margin-bottom: 30px;
+            animation: fadeIn 0.6s ease-out 0.2s both;
+        }
+
+        .search-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .search-header h2 {
+            color: var(--primary-color);
+            font-size: 1.8em;
+        }
+
+        .api-status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .api-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .api-badge.active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .api-badge.inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .api-badge::before {
+            content: '●';
+            font-size: 1.2em;
+        }
+
+        /* File Type Filter Section */
+        .filetype-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #bae6fd;
+        }
+
+        .filetype-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filetype-section h3::before {
+            content: '📁';
+            font-size: 1.3em;
+        }
+
+        .filetype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .filetype-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .filetype-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .filetype-card.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .filetype-icon {
+            font-size: 2.5em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .filetype-name {
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-bottom: 4px;
+        }
+
+        .filetype-formats {
+            font-size: 0.75em;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        /* Search Controls */
+        .search-controls {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        select {
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Advanced Filters */
+        .advanced-filters {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .advanced-filters h4 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        /* Button Styles */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Results Section */
+        .results-section {
+            animation: fadeIn 0.6s ease-out 0.4s both;
+        }
+
+        .results-header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .results-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .results-count {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .results-count span {
+            color: var(--primary-color);
+            font-size: 1.3em;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            background: var(--light-bg);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+        }
+
+        .view-btn.active {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .sort-controls select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 2px solid var(--border-color);
+            font-size: 0.95em;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .results-grid.list-view {
+            grid-template-columns: 1fr;
+        }
+
+        .media-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .media-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .media-image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 66.67%;
+            overflow: hidden;
+            background: var(--light-bg);
+        }
+
+        .media-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .media-card:hover .media-image {
+            transform: scale(1.05);
+        }
+
+        .media-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            padding: 15px;
+        }
+
+        .media-card:hover .media-overlay {
+            opacity: 1;
+        }
+
+        .overlay-info {
+            color: white;
+            width: 100%;
+        }
+
+        .overlay-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.95em;
+        }
+
+        .overlay-meta {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .media-badges {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .badge-filetype {
+            background: rgba(102, 126, 234, 0.95);
+            color: white;
+        }
+
+        .badge-source {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--text-primary);
+        }
+
+        .badge-resolution {
+            background: rgba(74, 222, 128, 0.95);
+            color: white;
+        }
+
+        .media-info {
+            padding: 15px;
+        }
+
+        .media-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 1em;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .media-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .media-author {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .media-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            background: var(--light-bg);
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        .stat-icon {
+            font-size: 1.1em;
+        }
+
+        .media-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .btn-download {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-view {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* List View Styles */
+        .results-grid.list-view .media-card {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .results-grid.list-view .media-image-container {
+            padding-top: 0;
+            height: 200px;
+        }
+
+        .results-grid.list-view .media-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .loading-text {
+            font-size: 1.1em;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Error State */
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #dc2626;
+            margin-bottom: 20px;
+        }
+
+        .error-message h4 {
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .modal-header h3 {
+            color: var(--text-primary);
+            font-size: 1.5em;
+        }
+
+        .modal-close {
+            background: var(--light-bg);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--danger-color);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .detail-group {
+            background: var(--light-bg);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 45px;
+        }
+
+        .page-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .page-btn.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+
+            .search-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .filetype-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+
+            .results-grid.list-view .media-card {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid.list-view .media-image-container {
+                height: 250px;
+            }
+
+            .modal-content {
+                margin: 20px;
+            }
+
+            .modal-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+    </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>📁 File Type Media Search</h1>
+            <p>Search royalty-free media by file type, format, and specifications</p>
+        </header>
+
+        <!-- API Notice -->
+        <div class="api-notice" id="apiNotice">
+            <h3>⚠️ API Configuration Required</h3>
+            <p>To use this application, you need to add your API keys. Get free API keys from:</p>
+            <ul>
+                <li><strong>Unsplash:</strong> <a href="https://unsplash.com/developers" target="_blank">unsplash.com/developers</a></li>
+                <li><strong>Pexels:</strong> <a href="https://www.pexels.com/api/" target="_blank">pexels.com/api</a></li>
+                <li><strong>Pixabay:</strong> <a href="https://pixabay.com/api/docs/" target="_blank">pixabay.com/api/docs</a></li>
+            </ul>
+            <p>Add your keys to the <code>API_KEYS</code> object in the JavaScript section of this file.</p>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-header">
+                <h2>🔍 Search Media</h2>
+                <div class="api-status">
+                    <div class="api-badge" id="unsplashStatus">
+                        <span>Unsplash</span>
+                    </div>
+                    <div class="api-badge" id="pexelsStatus">
+                        <span>Pexels</span>
+                    </div>
+                    <div class="api-badge" id="pixabayStatus">
+                        <span>Pixabay</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Type Filter Section -->
+            <div class="filetype-section">
+                <h3>Select File Type</h3>
+                <div class="filetype-grid">
+                    <div class="filetype-card active" data-type="all">
+                        <span class="filetype-icon">🌐</span>
+                        <div class="filetype-name">All Media</div>
+                        <div class="filetype-formats">All formats</div>
+                    </div>
+                    <div class="filetype-card" data-type="photo">
+                        <span class="filetype-icon">📷</span>
+                        <div class="filetype-name">Photos</div>
+                        <div class="filetype-formats">JPG, PNG, WebP</div>
+                    </div>
+                    <div class="filetype-card" data-type="vector">
+                        <span class="filetype-icon">🎨</span>
+                        <div class="filetype-name">Vectors</div>
+                        <div class="filetype-formats">SVG, AI, EPS</div>
+                    </div>
+                    <div class="filetype-card" data-type="illustration">
+                        <span class="filetype-icon">🖼️</span>
+                        <div class="filetype-name">Illustrations</div>
+                        <div class="filetype-formats">PNG, SVG</div>
+                    </div>
+                    <div class="filetype-card" data-type="video">
+                        <span class="filetype-icon">🎬</span>
+                        <div class="filetype-name">Videos</div>
+                        <div class="filetype-formats">MP4, MOV, WebM</div>
+                    </div>
+                    <div class="filetype-card" data-type="animation">
+                        <span class="filetype-icon">🎞️</span>
+                        <div class="filetype-name">Animations</div>
+                        <div class="filetype-formats">GIF, WebM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Controls -->
+            <div class="search-controls">
+                <div class="form-group">
+                    <label for="searchQuery">🔎 Search Keywords</label>
+                    <input type="text" id="searchQuery" placeholder="e.g., nature, technology, business..." value="nature">
+                </div>
+                <div class="form-group">
+                    <label for="mediaType">📂 Media Type</label>
+                    <select id="mediaType">
+                        <option value="all">All Types</option>
+                        <option value="photo">Photos Only</option>
+                        <option value="video">Videos Only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sourceFilter">🌍 Source</label>
+                    <select id="sourceFilter">
+                        <option value="all">All Sources</option>
+                        <option value="unsplash">Unsplash</option>
+                        <option value="pexels">Pexels</option>
+                        <option value="pixabay">Pixabay</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Advanced Filters -->
+            <div class="advanced-filters">
+                <h4>⚙️ Advanced Filters</h4>
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label for="orientation">📐 Orientation</label>
+                        <select id="orientation">
+                            <option value="all">All Orientations</option>
+                            <option value="landscape">Landscape</option>
+                            <option value="portrait">Portrait</option>
+                            <option value="square">Square</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="color">🎨 Color</label>
+                        <select id="color">
+                            <option value="all">All Colors</option>
+                            <option value="red">Red</option>
+                            <option value="orange">Orange</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="green">Green</option>
+                            <option value="blue">Blue</option>
+                            <option value="purple">Purple</option>
+                            <option value="black">Black</option>
+                            <option value="white">White</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="minResolution">📏 Min Resolution</label>
+                        <select id="minResolution">
+                            <option value="all">Any Resolution</option>
+                            <option value="1920x1080">Full HD (1920x1080)</option>
+                            <option value="2560x1440">2K (2560x1440)</option>
+                            <option value="3840x2160">4K (3840x2160)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="editorialUse">
+                        <span>Editorial Use Only</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="excludePeople">
+                        <span>Exclude People</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="highQualityOnly">
+                        <span>High Quality Only</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button class="btn-primary" id="searchBtn">
+                    <span>🔍</span>
+                    <span>Search Media</span>
+                </button>
+                <button class="btn-secondary" id="clearBtn">
+                    <span>🔄</span>
+                    <span>Clear Filters</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section hidden" id="resultsSection">
+            <div class="results-header">
+                <div class="results-info">
+                    <div class="results-count">
+                        Found <span id="resultsCount">0</span> results
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="grid" title="Grid View">📱</button>
+                        <button class="view-btn" data-view="list" title="List View">📋</button>
+                    </div>
+                </div>
+                <div class="sort-controls">
+                    <label for="sortBy">Sort by:</label>
+                    <select id="sortBy">
+                        <option value="relevant">Most Relevant</option>
+                        <option value="latest">Latest</option>
+                        <option value="popular">Most Popular</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="results-grid" id="resultsGrid"></div>
+
+            <div class="pagination hidden" id="pagination"></div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading hidden" id="loadingState">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Searching for media files...</div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message hidden" id="errorMessage">
+            <h4>⚠️ Error</h4>
+            <p id="errorText"></p>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="mediaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Media Details</h3>
+                <button class="modal-close" id="modalClose">×</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_KEYS = {
+            unsplash: '', // Add your Unsplash Access Key
+            pexels: '', // Add your Pexels API Key
+            pixabay: '' // Add your Pixabay API Key
+        };
+
+        // Application State
+        const state = {
+            currentPage: 1,
+            resultsPerPage: 20,
+            totalResults: 0,
+            currentResults: [],
+            currentView: 'grid',
+            selectedFileType: 'all',
+            searchQuery: 'nature',
+            filters: {
+                mediaType: 'all',
+                source: 'all',
+                orientation: 'all',
+                color: 'all',
+                minResolution: 'all',
+                editorialUse: false,
+                excludePeople: false,
+                highQualityOnly: false
+            }
+        };
+
+        // DOM Elements
+        const elements = {
+            searchQuery: document.getElementById('searchQuery'),
+            mediaType: document.getElementById('mediaType'),
+            sourceFilter: document.getElementById('sourceFilter'),
+            orientation: document.getElementById('orientation'),
+            color: document.getElementById('color'),
+            minResolution: document.getElementById('minResolution'),
+            editorialUse: document.getElementById('editorialUse'),
+            excludePeople: document.getElementById('excludePeople'),
+            highQualityOnly: document.getElementById('highQualityOnly'),
+            searchBtn: document.getElementById('searchBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            resultsSection: document.getElementById('resultsSection'),
+            resultsGrid: document.getElementById('resultsGrid'),
+            resultsCount: document.getElementById('resultsCount'),
+            loadingState: document.getElementById('loadingState'),
+            errorMessage: document.getElementById('errorMessage'),
+            errorText: document.getElementById('errorText'),
+            pagination: document.getElementById('pagination'),
+            sortBy: document.getElementById('sortBy'),
+            modal: document.getElementById('mediaModal'),
+            modalBody: document.getElementById('modalBody'),
+            modalClose: document.getElementById('modalClose'),
+            apiNotice: document.getElementById('apiNotice')
+        };
+
+        // Initialize Application
+        function init() {
+            checkAPIKeys();
+            setupEventListeners();
+            setupFileTypeCards();
+            setupViewToggle();
+            
+            // Auto-search on load if API keys are configured
+            if (hasAPIKeys()) {
+                performSearch();
+            }
+        }
+
+        // Check API Keys
+        function checkAPIKeys() {
+            const hasKeys = hasAPIKeys();
+            
+            if (hasKeys) {
+                elements.apiNotice.classList.add('hidden');
+            }
+
+            // Update API status badges
+            updateAPIStatus('unsplash', API_KEYS.unsplash);
+            updateAPIStatus('pexels', API_KEYS.pexels);
+            updateAPIStatus('pixabay', API_KEYS.pixabay);
+        }
+
+        function hasAPIKeys() {
+            return API_KEYS.unsplash || API_KEYS.pexels || API_KEYS.pixabay;
+        }
+
+        function updateAPIStatus(api, key) {
+            const badge = document.getElementById(`${api}Status`);
+            if (key) {
+                badge.classList.add('active');
+                badge.classList.remove('inactive');
+            } else {
+                badge.classList.add('inactive');
+                badge.classList.remove('active');
+            }
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            elements.searchBtn.addEventListener('click', performSearch);
+            elements.clearBtn.addEventListener('click', clearFilters);
+            elements.searchQuery.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+            elements.sortBy.addEventListener('change', sortResults);
+            elements.modalClose.addEventListener('click', closeModal);
+            elements.modal.addEventListener('click', (e) => {
+                if (e.target === elements.modal) closeModal();
+            });
+
+            // Filter change listeners
+            elements.mediaType.addEventListener('change', updateFilters);
+            elements.sourceFilter.addEventListener('change', updateFilters);
+            elements.orientation.addEventListener('change', updateFilters);
+            elements.color.addEventListener('change', updateFilters);
+            elements.minResolution.addEventListener('change', updateFilters);
+            elements.editorialUse.addEventListener('change', updateFilters);
+            elements.excludePeople.addEventListener('change', updateFilters);
+            elements.highQualityOnly.addEventListener('change', updateFilters);
+        }
+
+        // Setup File Type Cards
+        function setupFileTypeCards() {
+            const cards = document.querySelectorAll('.filetype-card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    cards.forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    state.selectedFileType = card.dataset.type;
+                });
+            });
+        }
+
+        // Setup View Toggle
+        function setupViewToggle() {
+            const viewBtns = document.querySelectorAll('.view-btn');
+            viewBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    viewBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.currentView = btn.dataset.view;
+                    elements.resultsGrid.className = `results-grid ${state.currentView === 'list' ? 'list-view' : ''}`;
+                });
+            });
+        }
+
+        // Update Filters
+        function updateFilters() {
+            state.filters = {
+                mediaType: elements.mediaType.value,
+                source: elements.sourceFilter.value,
+                orientation: elements.orientation.value,
+                color: elements.color.value,
+                minResolution: elements.minResolution.value,
+                editorialUse: elements.editorialUse.checked,
+                excludePeople: elements.excludePeople.checked,
+                highQualityOnly: elements.highQualityOnly.checked
+            };
+        }
+
+        // Clear Filters
+        function clearFilters() {
+            elements.searchQuery.value = '';
+            elements.mediaType.value = 'all';
+            elements.sourceFilter.value = 'all';
+            elements.orientation.value = 'all';
+            elements.color.value = 'all';
+            elements.minResolution.value = 'all';
+            elements.editorialUse.checked = false;
+            elements.excludePeople.checked = false;
+            elements.highQualityOnly.checked = false;
+            
+            document.querySelectorAll('.filetype-card').forEach(card => {
+                card.classList.remove('active');
+                if (card.dataset.type === 'all') {
+                    card.classList.add('active');
+                }
+            });
+            
+            state.selectedFileType = 'all';
+            updateFilters();
+        }
+
+        // Perform Search
+        async function performSearch() {
+            if (!hasAPIKeys()) {
+                showError('Please configure at least one API key to search for media.');
+                return;
+            }
+
+            const query = elements.searchQuery.value.trim();
+            if (!query) {
+                showError('Please enter a search term.');
+                return;
+            }
+
+            state.searchQuery = query;
+            state.currentPage = 1;
+            updateFilters();
+
+            showLoading();
+            hideError();
+            elements.resultsSection.classList.add('hidden');
+
+            try {
+                const results = await fetchMediaFromAPIs(query);
+                state.currentResults = filterResults(results);
+                state.totalResults = state.currentResults.length;
+                
+                if (state.totalResults === 0) {
+                    showEmptyState();
+                } else {
+                    displayResults();
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                showError('An error occurred while searching. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Fetch Media from APIs
+        async function fetchMediaFromAPIs(query) {
+            const promises = [];
+            const results = [];
+
+            // Fetch from Unsplash
+            if (API_KEYS.unsplash && (state.filters.source === 'all' || state.filters.source === 'unsplash')) {
+                promises.push(fetchFromUnsplash(query));
+            }
+
+            // Fetch from Pexels
+            if (API_KEYS.pexels && (state.filters.source === 'all' || state.filters.source === 'pexels')) {
+                promises.push(fetchFromPexels(query));
+            }
+
+            // Fetch from Pixabay
+            if (API_KEYS.pixabay && (state.filters.source === 'all' || state.filters.source === 'pixabay')) {
+                promises.push(fetchFromPixabay(query));
+            }
+
+            const responses = await Promise.allSettled(promises);
+            
+            responses.forEach(response => {
+                if (response.status === 'fulfilled' && response.value) {
+                    results.push(...response.value);
+                }
+            });
+
+            return results;
+        }
+
+        // Fetch from Unsplash
+        async function fetchFromUnsplash(query) {
+            try {
+                const mediaType = state.filters.mediaType === 'video' ? null : 'photos';
+                if (!mediaType) return [];
+
+                const params = new URLSearchParams({
+                    query: query,
+                    per_page: 30,
+                    orientation: state.filters.orientation !== 'all' ? state.filters.orientation : undefined,
+                    color: state.filters.color !== 'all' ? state.filters.color : undefined
+                });
+
+                const response = await fetch(`https://api.unsplash.com/search/photos?${params}`, {
+                    headers: {
+                        'Authorization': `Client-ID ${API_KEYS.unsplash}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Unsplash API error');
+
+                const data = await response.json();
+                return data.results.map(item => ({
+                    id: `unsplash-${item.id}`,
+                    title: item.description || item.alt_description || 'Untitled',
+                    type: 'photo',
+                    fileType: 'JPG',
+                    source: 'unsplash',
+                    thumbnail: item.urls.small,
+                    preview: item.urls.regular,
+                    full: item.urls.full,
+                    download: item.links.download,
+                    sourceUrl: item.links.html,
+                    author: item.user.name,
+                    authorUrl: item.user.links.html,
+                    width: item.width,
+                    height: item.height,
+                    resolution: `${item.width}x${item.height}`,
+                    likes: item.likes,
+                    downloads: item.downloads || 0,
+                    color: item.color,
+                    orientation: getOrientation(item.width, item.height)
+                }));
+            } catch (error) {
+                console.error('Unsplash fetch error:', error);
+                return [];
+            }
+        }
+
+        // Fetch from Pexels
+        async function fetchFromPexels(query) {
+            try {
+                const results = [];
+                
+                // Fetch photos if needed
+                if (state.filters.mediaType === 'all' || state.filters.mediaType === 'photo') {
+                    const params = new URLSearchParams({
+                        query: query,
+                        per_page: 30,
+                        orientation: state.filters.orientation !== 'all' ? state.filters.orientation : undefined
+                    });
+
+                    const photoResponse = await fetch(`https://api.pexels.com/v1/search?${params}`, {
+                        headers: {
+                            'Authorization': API_KEYS.pexels
+                        }
+                    });
+
+                    if (photoResponse.ok) {
+                        const photoData = await photoResponse.json();
+                        results.push(...photoData.photos.map(item => ({
+                            id: `pexels-photo-${item.id}`,
+                            title: item.alt || 'Untitled',
+                            type: 'photo',
+                            fileType: 'JPG',
+                            source: 'pexels',
+                            thumbnail: item.src.small,
+                            preview: item.src.medium,
+                            full: item.src.original,
+                            download: item.src.original,
+                            sourceUrl: item.url,
+                            author: item.photographer,
+                            authorUrl: item.photographer_url,
+                            width: item.width,
+                            height: item.height,
+                            resolution: `${item.width}x${item.height}`,
+                            likes: 0,
+                            downloads: 0,
+                            color: item.avg_color,
+                            orientation: getOrientation(item.width, item.height)
+                        })));
+                    }
+                }
+
+                // Fetch videos if needed
+                if (state.filters.mediaType === 'all' || state.filters.mediaType === 'video') {
+                    const params = new URLSearchParams({
+                        query: query,
+                        per_page: 30,
+                        orientation: state.filters.orientation !== 'all' ? state.filters.orientation : undefined
+                    });
+
+                    const videoResponse = await fetch(`https://api.pexels.com/videos/search?${params}`, {
+                        headers: {
+                            'Authorization': API_KEYS.pexels
+                        }
+                    });
+
+                    if (videoResponse.ok) {
+                        const videoData = await videoResponse.json();
+                        results.push(...videoData.videos.map(item => ({
+                            id: `pexels-video-${item.id}`,
+                            title: 'Video',
+                            type: 'video',
+                            fileType: 'MP4',
+                            source: 'pexels',
+                            thumbnail: item.image,
+                            preview: item.video_files[0]?.link || item.image,
+                            full: item.video_files[0]?.link || item.image,
+                            download: item.video_files[0]?.link || item.image,
+                            sourceUrl: item.url,
+                            author: item.user.name,
+                            authorUrl: item.user.url,
+                            width: item.width,
+                            height: item.height,
+                            resolution: `${item.width}x${item.height}`,
+                            duration: item.duration,
+                            likes: 0,
+                            downloads: 0,
+                            orientation: getOrientation(item.width, item.height)
+                        })));
+                    }
+                }
+
+                return results;
+            } catch (error) {
+                console.error('Pexels fetch error:', error);
+                return [];
+            }
+        }
+
+        // Fetch from Pixabay
+        async function fetchFromPixabay(query) {
+            try {
+                const results = [];
+                
+                // Fetch images if needed
+                if (state.filters.mediaType === 'all' || state.filters.mediaType === 'photo') {
+                    const params = new URLSearchParams({
+                        key: API_KEYS.pixabay,
+                        q: query,
+                        per_page: 30,
+                        image_type: state.selectedFileType === 'vector' ? 'vector' : 
+                                   state.selectedFileType === 'illustration' ? 'illustration' : 'photo',
+                        orientation: state.filters.orientation !== 'all' ? state.filters.orientation : undefined,
+                        colors: state.filters.color !== 'all' ? state.filters.color : undefined
+                    });
+
+                    const imageResponse = await fetch(`https://pixabay.com/api/?${params}`);
+                    
+                    if (imageResponse.ok) {
+                        const imageData = await imageResponse.json();
+                        results.push(...imageData.hits.map(item => ({
+                            id: `pixabay-image-${item.id}`,
+                            title: item.tags,
+                            type: 'photo',
+                            fileType: item.type === 'vector' ? 'SVG' : 'JPG',
+                            source: 'pixabay',
+                            thumbnail: item.previewURL,
+                            preview: item.webformatURL,
+                            full: item.largeImageURL,
+                            download: item.largeImageURL,
+                            sourceUrl: item.pageURL,
+                            author: item.user,
+                            authorUrl: `https://pixabay.com/users/${item.user}-${item.user_id}/`,
+                            width: item.imageWidth,
+                            height: item.imageHeight,
+                            resolution: `${item.imageWidth}x${item.imageHeight}`,
+                            likes: item.likes,
+                            downloads: item.downloads,
+                            views: item.views,
+                            orientation: getOrientation(item.imageWidth, item.imageHeight)
+                        })));
+                    }
+                }
+
+                // Fetch videos if needed
+                if (state.filters.mediaType === 'all' || state.filters.mediaType === 'video') {
+                    const params = new URLSearchParams({
+                        key: API_KEYS.pixabay,
+                        q: query,
+                        per_page: 30
+                    });
+
+                    const videoResponse = await fetch(`https://pixabay.com/api/videos/?${params}`);
+                    
+                    if (videoResponse.ok) {
+                        const videoData = await videoResponse.json();
+                        results.push(...videoData.hits.map(item => ({
+                            id: `pixabay-video-${item.id}`,
+                            title: item.tags,
+                            type: 'video',
+                            fileType: 'MP4',
+                            source: 'pixabay',
+                            thumbnail: item.videos.tiny.thumbnail,
+                            preview: item.videos.medium.url,
+                            full: item.videos.large.url,
+                            download: item.videos.large.url,
+                            sourceUrl: item.pageURL,
+                            author: item.user,
+                            authorUrl: `https://pixabay.com/users/${item.user}-${item.user_id}/`,
+                            width: item.videos.large.width,
+                            height: item.videos.large.height,
+                            resolution: `${item.videos.large.width}x${item.videos.large.height}`,
+                            duration: item.duration,
+                            likes: item.likes,
+                            downloads: item.downloads,
+                            views: item.views,
+                            orientation: getOrientation(item.videos.large.width, item.videos.large.height)
+                        })));
+                    }
+                }
+
+                return results;
+            } catch (error) {
+                console.error('Pixabay fetch error:', error);
+                return [];
+            }
+        }
+
+        // Helper Functions
+        function getOrientation(width, height) {
+            const ratio = width / height;
+            if (ratio > 1.2) return 'landscape';
+            if (ratio < 0.8) return 'portrait';
+            return 'square';
+        }
+
+        function filterResults(results) {
+            return results.filter(item => {
+                // File type filter
+                if (state.selectedFileType !== 'all') {
+                    if (state.selectedFileType === 'photo' && item.type !== 'photo') return false;
+                    if (state.selectedFileType === 'video' && item.type !== 'video') return false;
+                    if (state.selectedFileType === 'vector' && item.fileType !== 'SVG') return false;
+                    if (state.selectedFileType === 'illustration' && item.fileType !== 'SVG') return false;
+                    if (state.selectedFileType === 'animation' && item.type !== 'video') return false;
+                }
+
+                // Orientation filter
+                if (state.filters.orientation !== 'all' && item.orientation !== state.filters.orientation) {
+                    return false;
+                }
+
+                // Resolution filter
+                if (state.filters.minResolution !== 'all') {
+                    const [minWidth, minHeight] = state.filters.minResolution.split('x').map(Number);
+                    if (item.width < minWidth || item.height < minHeight) return false;
+                }
+
+                // High quality filter
+                if (state.filters.highQualityOnly) {
+                    if (item.width < 1920 || item.height < 1080) return false;
+                }
+
+                return true;
+            });
+        }
+
+        function sortResults() {
+            const sortBy = elements.sortBy.value;
+            
+            state.currentResults.sort((a, b) => {
+                switch (sortBy) {
+                    case 'latest':
+                        return 0; // API results are already sorted by relevance/latest
+                    case 'popular':
+                        return (b.likes + b.downloads + (b.views || 0)) - (a.likes + a.downloads + (a.views || 0));
+                    default:
+                        return 0;
+                }
+            });
+
+            displayResults();
+        }
+
+        // Display Results
+        function displayResults() {
+            elements.resultsSection.classList.remove('hidden');
+            elements.resultsCount.textContent = state.totalResults;
+            
+            const startIndex = (state.currentPage - 1) * state.resultsPerPage;
+            const endIndex = startIndex + state.resultsPerPage;
+            const pageResults = state.currentResults.slice(startIndex, endIndex);
+
+            elements.resultsGrid.innerHTML = pageResults.map(item => `
+                <div class="media-card" onclick="openModal('${item.id}')">
+                    <div class="media-image-container">
+                        <img src="${item.thumbnail}" alt="${item.title}" class="media-image" loading="lazy">
+                        <div class="media-overlay">
+                            <div class="overlay-info">
+                                <div class="overlay-title">${item.title}</div>
+                                <div class="overlay-meta">by ${item.author}</div>
+                            </div>
+                        </div>
+                        <div class="media-badges">
+                            <span class="badge badge-filetype">${item.fileType}</span>
+                            <span class="badge badge-source">${item.source}</span>
+                            ${item.resolution ? `<span class="badge badge-resolution">${item.resolution}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="media-info">
+                        <div class="media-title">${item.title}</div>
+                        <div class="media-meta">
+                            <span class="media-author">👤 ${item.author}</span>
+                            <span>${item.type === 'video' ? '🎬' : '📷'}</span>
+                        </div>
+                        <div class="media-stats">
+                            <div class="stat-item">
+                                <span class="stat-icon">❤️</span>
+                                <span>${formatNumber(item.likes)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">📥</span>
+                                <span>${formatNumber(item.downloads)}</span>
+                            </div>
+                            ${item.views ? `
+                            <div class="stat-item">
+                                <span class="stat-icon">👁️</span>
+                                <span>${formatNumber(item.views)}</span>
+                            </div>
+                            ` : ''}
+                            ${item.duration ? `
+                            <div class="stat-item">
+                                <span class="stat-icon">⏱️</span>
+                                <span>${item.duration}s</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="media-actions">
+                            <button class="action-btn btn-download" onclick="event.stopPropagation(); downloadMedia('${item.download}', '${item.title}')">
+                                <span>📥</span>
+                                <span>Download</span>
+                            </button>
+                            <button class="action-btn btn-view" onclick="event.stopPropagation(); window.open('${item.sourceUrl}', '_blank')">
+                                <span>🔗</span>
+                                <span>View Source</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            renderPagination();
+        }
+
+        // Pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(state.totalResults / state.resultsPerPage);
+            
+            if (totalPages <= 1) {
+                elements.pagination.classList.add('hidden');
+                return;
+            }
+
+            elements.pagination.classList.remove('hidden');
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            paginationHTML += `
+                <button class="page-btn" onclick="changePage(${state.currentPage - 1})" ${state.currentPage === 1 ? 'disabled' : ''}>
+                    ← Previous
+                </button>
+            `;
+
+            // Page numbers
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, state.currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            if (startPage > 1) {
+                paginationHTML += `<button class="page-btn" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    paginationHTML += `<span class="page-btn" disabled>...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <button class="page-btn ${i === state.currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `<span class="page-btn" disabled>...</span>`;
+                }
+                paginationHTML += `<button class="page-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+
+            // Next button
+            paginationHTML += `
+                <button class="page-btn" onclick="changePage(${state.currentPage + 1})" ${state.currentPage === totalPages ? 'disabled' : ''}>
+                    Next →
+                </button>
+            `;
+
+            elements.pagination.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            state.currentPage = page;
+            displayResults();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Modal Functions
+        function openModal(itemId) {
+            const item = state.currentResults.find(r => r.id === itemId);
+            if (!item) return;
+
+            const modalContent = `
+                <img src="${item.preview}" alt="${item.title}" class="modal-image">
+                <div class="modal-details">
+                    <div class="detail-group">
+                        <div class="detail-label">Title</div>
+                        <div class="detail-value">${item.title}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">File Type</div>
+                        <div class="detail-value">${item.fileType}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Resolution</div>
+                        <div class="detail-value">${item.resolution}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Orientation</div>
+                        <div class="detail-value">${item.orientation}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Source</div>
+                        <div class="detail-value">${item.source}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Author</div>
+                        <div class="detail-value">
+                            <a href="${item.authorUrl}" target="_blank" style="color: var(--primary-color);">
+                                ${item.author}
+                            </a>
+                        </div>
+                    </div>
+                    ${item.color ? `
+                    <div class="detail-group">
+                        <div class="detail-label">Dominant Color</div>
+                        <div class="detail-value">
+                            <span style="display: inline-block; width: 20px; height: 20px; background: ${item.color}; border-radius: 4px; vertical-align: middle; margin-right: 8px;"></span>
+                            ${item.color}
+                        </div>
+                    </div>
+                    ` : ''}
+                    ${item.duration ? `
+                    <div class="detail-group">
+                        <div class="detail-label">Duration</div>
+                        <div class="detail-value">${item.duration} seconds</div>
+                    </div>
+                    ` : ''}
+                    <div class="detail-group">
+                        <div class="detail-label">Likes</div>
+                        <div class="detail-value">${formatNumber(item.likes)}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Downloads</div>
+                        <div class="detail-value">${formatNumber(item.downloads)}</div>
+                    </div>
+                    ${item.views ? `
+                    <div class="detail-group">
+                        <div class="detail-label">Views</div>
+                        <div class="detail-value">${formatNumber(item.views)}</div>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-primary" onclick="downloadMedia('${item.download}', '${item.title}')">
+                        <span>📥</span>
+                        <span>Download ${item.fileType}</span>
+                    </button>
+                    <button class="btn-secondary" onclick="window.open('${item.sourceUrl}', '_blank')">
+                        <span>🔗</span>
+                        <span>View on ${item.source}</span>
+                    </button>
+                    <button class="btn-secondary" onclick="window.open('${item.authorUrl}', '_blank')">
+                        <span>👤</span>
+                        <span>View Author</span>
+                    </button>
+                </div>
+            `;
+
+            elements.modalBody.innerHTML = modalContent;
+            elements.modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            elements.modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Download Media
+        function downloadMedia(url, title) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = title || 'media';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Utility Functions
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            }
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        function showLoading() {
+            elements.loadingState.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            elements.loadingState.classList.add('hidden');
+        }
+
+        function showError(message) {
+            elements.errorText.textContent = message;
+            elements.errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            elements.errorMessage.classList.add('hidden');
+        }
+
+        function showEmptyState() {
+            elements.resultsSection.classList.remove('hidden');
+            elements.resultsCount.textContent = '0';
+            elements.resultsGrid.innerHTML = `
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-icon">🔍</div>
+                    <h3>No Results Found</h3>
+                    <p>Try adjusting your search terms or filters</p>
+                </div>
+            `;
+            elements.pagination.classList.add('hidden');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

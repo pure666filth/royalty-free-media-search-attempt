@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Type Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #f8fafc;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .notice {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid #ef4444;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .notice h3 {
+            color: #ef4444;
+            margin-bottom: 10px;
+        }
+
+        .search-section {
+            background: #1e293b;
+            padding: 35px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+        }
+
+        .filetype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .filetype-card {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .filetype-card:hover {
+            transform: translateY(-5px);
+            border-color: #2563eb;
+        }
+
+        .filetype-card.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-color: #2563eb;
+        }
+
+        .filetype-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .filetype-name {
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .filetype-formats {
+            font-size: 0.85em;
+            color: #94a3b8;
+        }
+
+        .search-controls {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            padding: 14px 16px;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            font-size: 1em;
+            background: rgba(15, 23, 42, 0.5);
+            color: #f8fafc;
+        }
+
+        button {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .file-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            transition: all 0.3s ease;
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📁 File Type Search Engine</h1>
+            <p>Search for movies, videos, audio, software, documents, and more</p>
+        </header>
+
+        <div class="notice">
+            <h3>⚠️ Important Notice</h3>
+            <p>This is a demonstration interface. This tool does not host, store, or distribute any files.</p>
+        </div>
+
+        <div class="search-section">
+            <div class="filetype-grid">
+                <div class="filetype-card active" data-type="all">
+                    <span class="filetype-icon">🌐</span>
+                    <div class="filetype-name">All Files</div>
+                    <div class="filetype-formats">All formats</div>
+                </div>
+                <div class="filetype-card" data-type="movies">
+                    <span class="filetype-icon">🎬</span>
+                    <div class="filetype-name">Movies</div>
+                    <div class="filetype-formats">MP4, MKV, AVI</div>
+                </div>
+                <div class="filetype-card" data-type="videos">
+                    <span class="filetype-icon">📹</span>
+                    <div class="filetype-name">Videos</div>
+                    <div class="filetype-formats">MP4, WebM</div>
+                </div>
+                <div class="filetype-card" data-type="audio">
+                    <span class="filetype-icon">🎵</span>
+                    <div class="filetype-name">Audio</div>
+                    <div class="filetype-formats">MP3, FLAC</div>
+                </div>
+                <div class="filetype-card" data-type="audiobooks">
+                    <span class="filetype-icon">📚</span>
+                    <div class="filetype-name">Audiobooks</div>
+                    <div class="filetype-formats">M4B, MP3</div>
+                </div>
+                <div class="filetype-card" data-type="software">
+                    <span class="filetype-icon">💿</span>
+                    <div class="filetype-name">Software</div>
+                    <div class="filetype-formats">EXE, ISO</div>
+                </div>
+                <div class="filetype-card" data-type="documents">
+                    <span class="filetype-icon">📄</span>
+                    <div class="filetype-name">Documents</div>
+                    <div class="filetype-formats">PDF, EPUB</div>
+                </div>
+                <div class="filetype-card" data-type="games">
+                    <span class="filetype-icon">🎮</span>
+                    <div class="filetype-name">Games</div>
+                    <div class="filetype-formats">ISO, EXE</div>
+                </div>
+            </div>
+
+            <div class="search-controls">
+                <input type="text" id="searchQuery" placeholder="Enter search keywords...">
+                <select id="quality">
+                    <option>All Qualities</option>
+                    <option>4K</option>
+                    <option>1080p</option>
+                    <option>720p</option>
+                </select>
+                <select id="sortBy">
+                    <option>Relevance</option>
+                    <option>Date</option>
+                    <option>Size</option>
+                </select>
+            </div>
+
+            <button id="searchBtn">🔍 Search Files</button>
+        </div>
+
+        <div class="results-grid hidden" id="resultsGrid"></div>
+    </div>
+
+    <script>
+        const state = { selectedFileType: 'all', results: [] };
+
+        function init() {
+            document.querySelectorAll('.filetype-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.filetype-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    state.selectedFileType = card.dataset.type;
+                });
+            });
+
+            document.getElementById('searchBtn').addEventListener('click', performSearch);
+
+            state.results = [
+                { id: 1, title: 'Example Movie 2024', type: 'movies', format: 'MKV', size: '4.5 GB', quality: '1080p' },
+                { id: 2, title: 'Sample Audio Album', type: 'audio', format: 'FLAC', size: '450 MB', quality: 'Lossless' },
+                { id: 3, title: 'Software Package', type: 'software', format: 'ISO', size: '2.8 GB', quality: 'Full' }
+            ];
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            let results = [...state.results];
+
+            if (state.selectedFileType !== 'all') {
+                results = results.filter(f => f.type === state.selectedFileType);
+            }
+
+            if (query) {
+                results = results.filter(f => f.title.toLowerCase().includes(query.toLowerCase()));
+            }
+
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            const grid = document.getElementById('resultsGrid');
+            grid.classList.remove('hidden');
+
+            const icons = { movies: '🎬', videos: '📹', audio: '🎵', audiobooks: '📚', software: '💿', documents: '📄', games: '🎮' };
+
+            grid.innerHTML = results.map(file => `
+                <div class="file-card">
+                    <div style="font-size: 2.5em; margin-bottom: 10px;">${icons[file.type]}</div>
+                    <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 10px;">${file.title}</div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <span style="padding: 4px 10px; background: rgba(37, 99, 235, 0.2); border-radius: 6px; font-size: 0.8em;">${file.format}</span>
+                        <span style="padding: 4px 10px; background: rgba(16, 185, 129, 0.2); border-radius: 6px; font-size: 0.8em;">${file.size}</span>
+                        <span style="padding: 4px 10px; background: rgba(245, 158, 11, 0.2); border-radius: 6px; font-size: 0.8em;">${file.quality}</span>
+                    </div>
+                    <button style="width: 100%;">📥 Download</button>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
